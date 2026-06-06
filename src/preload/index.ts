@@ -12,10 +12,10 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('tcpSocket', {
-      onTcpData: (callback) => {
-        ipcRenderer.on('udp-data', (_event, args) => callback(args))
+      onUDPMessage: (callback) => {
+        ipcRenderer.on('audio-data', (_event, args) => callback(args))
       },
-      sendTcpData: (data) => {
+      sendUDPMessage: (data) => {
         ipcRenderer.send('packet-data', data)
       }
     })

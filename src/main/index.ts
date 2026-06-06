@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import dgram from 'node:dgram'
+import { parseVcp } from './VcpParser'
 
 const port = 7000
 let mainWindow: BrowserWindow
@@ -47,28 +48,33 @@ app.whenReady().then(() => {
   const socket = dgram.createSocket('udp4')
   socket.bind(port)
 
-  socket.on('message', (msg) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const packetString = msg.toString('utf8', 0, 7)
-    const packetNumber = msg.readBigUInt64BE(7)
-    const timestamp = msg.readBigInt64BE(15)
-    const dataLen = msg.readUInt16BE(23)
-    const bytes = new Uint8Array(msg.subarray(25, 25 + dataLen))
-    const packetData = {
-      packetNum: packetNumber,
-      timestamp: timestamp,
-      dataLen: dataLen,
-      bytes: bytes
-    }
-    if (mainWindow) {
-      mainWindow.webContents.send('udp-data', packetData)
+  socket.on('message', (msg, rinfo) => {
+    const message = parseVcp(msg)
+    if (typeof message === 'string') {
+      socket.send(message, rinfo.port, rinfo.address)
+    } else {
+      switch (message.type) {
+        case 'PACKET':
+          if (mainWindow) {
+            mainWindow.webContents.send('audio-data', message.data)
+          }
+          break
+        case 'CALL':
+          //todo
+          break
+        case 'ACCEPTCALL':
+          //todo
+          break
+        case 'DECLINECALL':
+        //todo
+      }
     }
   })
 
-  socket.send(`CALL 73.87.125.145 7000 audio/opus "hi"\n`, 7000, "73.223.148.172")
+  socket.send(`CALL 73.87.125.145 7000 audio/opus "hi"\n`, 7000, '73.223.148.172')
 
   ipcMain.on('packet-data', (_event, data: Uint8Array) => {
-    socket.send(data, 7000, "73.223.148.172")
+    socket.send(data, 7000, '73.223.148.172')
   })
 
   // Default open or close DevTools by F12 in development
