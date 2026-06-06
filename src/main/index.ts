@@ -2,10 +2,13 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import dgram from 'node:dgram'
 
+const port = 7000
+let mainWindow: BrowserWindow
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -34,13 +37,37 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
+
+  const socket = dgram.createSocket('udp4')
+  socket.bind(port)
+
+  socket.on('message', (msg) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const packetString = msg.toString('utf8', 0, 7)
+    const packetNumber = msg.readBigUInt64BE(7)
+    const timestamp = msg.readBigInt64BE(15)
+    const dataLen = msg.readUInt16BE(23)
+    const bytes = new Uint8Array(msg.subarray(25, 25 + dataLen))
+    const packetData = {
+      packetNum: packetNumber,
+      timestamp: timestamp,
+      dataLen: dataLen,
+      bytes: bytes
+    }
+    if (mainWindow) {
+      mainWindow.webContents.send('udp-data', packetData)
+    }
+  })
+
+  ipcMain.on('packet-data', (_event, data: Uint8Array) => {
+    //todo
+  })
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

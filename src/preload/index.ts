@@ -1,4 +1,4 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
@@ -11,6 +11,14 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('tcpSocket', {
+      onTcpData: (callback) => {
+        ipcRenderer.on('udp-data', (_event, args) => callback(args))
+      },
+      sendTcpData: (data) => {
+        ipcRenderer.send('packet-data', data)
+      }
+    })
   } catch (error) {
     console.error(error)
   }

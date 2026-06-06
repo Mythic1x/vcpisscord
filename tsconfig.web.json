@@ -5,11 +5,12 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts"
-  ],
+, "public/input-processor.js"  ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@renderer/*": [
         "src/renderer/src/*"
