@@ -65,8 +65,10 @@ app.whenReady().then(() => {
     }
   })
 
+  socket.send(`CALL 73.87.125.145 7000 audio/opus "hi"\n`, 7000, "73.223.148.172")
+
   ipcMain.on('packet-data', (_event, data: Uint8Array) => {
-    //todo
+    socket.send(data, 7000, "73.223.148.172")
   })
 
   // Default open or close DevTools by F12 in development

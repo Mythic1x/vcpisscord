@@ -48,8 +48,9 @@ function App(): React.JSX.Element {
       sampleRate: 48000,
       numberOfChannels: 1,
       bitrate: 64000,
+
       //@ts-ignore typescript not typing things properly
-      opus: {"signal": "voice", useinbandfec: true}
+      opus: {"signal": "voice", "application": "voip"}
     })
 
 
