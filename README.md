@@ -1,6 +1,8 @@
 # vcpisscord
 
-An Electron application with React and TypeScript
+A VCP implementation in React
+
+TODO: Output received packets, implement proper connection handling
 
 ## Recommended IDE Setup
 
